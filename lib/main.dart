@@ -37,17 +37,18 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String ingredientName = "";
   String recipeName = "";
-  String foodName = "";
   String recipeURL = "";
-  List<String> ingredientName=[];
+  List<String> recipeNames=[];
+  List<String> recipeURLs=[];
 
   Future<bool> checkIfDocExists(String docId) async {
     try {
       var doc = await FirebaseFirestore.instance.collection("Recipe").doc(docId).get();
       return doc.exists;
     } catch (e) {
-      throw e;
+      rethrow;
     }
   }
 
@@ -62,56 +63,66 @@ class _MyHomePageState extends State<MyHomePage> {
         child:Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("料理名を入力",style: TextStyle(fontSize: 20),),
+            const Text("食材名を入力",style: TextStyle(fontSize: 20),),
             SizedBox(
               width: MediaQuery.of(context).size.width*0.8,
               height: 80,
               child: TextField(
                 onChanged: (text){
                   setState(() {
-                    recipeName = text;
+                    ingredientName = text;
                   });
                 },
-              ),
-            ),
-            const Text("URLを入力",style: TextStyle(fontSize: 20),),
-            SizedBox(
-              width: MediaQuery.of(context).size.width*0.8,
-              height: 80,
-              child: TextField(
-                onChanged: (text){
-                  setState(() {
-                    recipeURL = text;
-                  });
-                },
-              ),
-            ),
-            const Text("食材を入力",style: TextStyle(fontSize: 20),),
-            SizedBox(
-              width: MediaQuery.of(context).size.width*0.8,
-              height: 80,
-              child: TextField(
-                onChanged: (text){
-                  setState(() {
-                    foodName = text;
-                  });
-                  },
               ),
             ),
             Container(
-              width: MediaQuery.of(context).size.width*0.6,
-              height: 60,
-              child: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    ingredientName.add(foodName);
-                  });
-                },
-                child: const Text("追加"),
+              color: Colors.grey[350],
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text("料理名を入力",style: TextStyle(fontSize: 20),),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width*0.8,
+                    height: 80,
+                    child: TextField(
+                      onChanged: (text){
+                        setState(() {
+                          recipeName = text;
+                        });
+                      },
+                    ),
+                  ),
+                  const Text("レシピURLを入力",style: TextStyle(fontSize: 20),),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width*0.8,
+                    height: 80,
+                    child: TextField(
+                      onChanged: (text){
+                        setState(() {
+                          recipeURL = text;
+                        });
+                      },
+                    ),
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width*0.6,
+                    height: 60,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          recipeNames.add(recipeName);
+                          recipeURLs.add(recipeURL);
+                        });
+                      },
+                      child: const Text("追加"),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 100,),
-            Text("内部数値\n料理名＝$recipeName\nURL＝$recipeURL\n食材＝$ingredientName",style: const TextStyle(fontSize: 20),),
+            Text("内部数値\n食材名＝$ingredientName\nレシピURL＝$recipeURLs\n料理名＝$recipeNames",style: const TextStyle(fontSize: 20),),
           ],
         ),
       ),
@@ -121,7 +132,8 @@ class _MyHomePageState extends State<MyHomePage> {
           FloatingActionButton(
             onPressed: (){
               setState(() {
-                ingredientName=[];
+                recipeNames=[];
+                recipeURLs=[];
               });
             },
             tooltip: '食材リセット',
@@ -130,11 +142,11 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(width: MediaQuery.of(context).size.width*0.5,),
           FloatingActionButton(
             onPressed: ()async{
-              for(int i=0;i<ingredientName.length;i++){
-                if(await checkIfDocExists(recipeName)){
-                  FirebaseFirestore.instance.collection("Recipe").doc(recipeName).set({ingredientName[i] : recipeURL},SetOptions(merge:true));
+              for(int i=0;i<recipeNames.length;i++){
+                if(await checkIfDocExists(ingredientName)){
+                  FirebaseFirestore.instance.collection("Recipe").doc(ingredientName).set({recipeNames[i] : recipeURLs[i]},SetOptions(merge:true));
                 }else{
-                  FirebaseFirestore.instance.collection("Recipe").doc(recipeName).set({ ingredientName[i] : recipeURL});
+                  FirebaseFirestore.instance.collection("Recipe").doc(ingredientName).set({ recipeNames[i] : recipeURLs[i]});
                 }
               }
               },

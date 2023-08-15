@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: '賞味期限入力'),
+      home: const MyHomePage(title: 'レシピURL・食材入力'),
     );
   }
 }
@@ -37,8 +37,19 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  String recipeName = "";
   String foodName = "";
-  int expiryDate = 0;
+  String recipeURL = "";
+  List<String> ingredientName=[];
+
+  Future<bool> checkIfDocExists(String docId) async {
+    try {
+      var doc = await FirebaseFirestore.instance.collection("Recipe").doc(docId).get();
+      return doc.exists;
+    } catch (e) {
+      throw e;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +62,31 @@ class _MyHomePageState extends State<MyHomePage> {
         child:Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text("食材名を入力",style: TextStyle(fontSize: 20),),
+            const Text("料理名を入力",style: TextStyle(fontSize: 20),),
+            SizedBox(
+              width: MediaQuery.of(context).size.width*0.8,
+              height: 80,
+              child: TextField(
+                onChanged: (text){
+                  setState(() {
+                    recipeName = text;
+                  });
+                },
+              ),
+            ),
+            const Text("URLを入力",style: TextStyle(fontSize: 20),),
+            SizedBox(
+              width: MediaQuery.of(context).size.width*0.8,
+              height: 80,
+              child: TextField(
+                onChanged: (text){
+                  setState(() {
+                    recipeURL = text;
+                  });
+                },
+              ),
+            ),
+            const Text("食材を入力",style: TextStyle(fontSize: 20),),
             SizedBox(
               width: MediaQuery.of(context).size.width*0.8,
               height: 80,
@@ -60,38 +95,55 @@ class _MyHomePageState extends State<MyHomePage> {
                   setState(() {
                     foodName = text;
                   });
-                },
-              ),
-            ),
-            const Text("賞味期限を入力",style: TextStyle(fontSize: 20),),
-            SizedBox(
-              width: MediaQuery.of(context).size.width*0.8,
-              height: 80,
-              child: TextField(
-                onChanged: (text){
-                  var num = int.tryParse(text);
-                  setState(() {
-                    if(num!=null){
-                      expiryDate = num;
-                    }
-                  });
                   },
               ),
             ),
+            Container(
+              width: MediaQuery.of(context).size.width*0.6,
+              height: 60,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    ingredientName.add(foodName);
+                  });
+                },
+                child: const Text("追加"),
+              ),
+            ),
             const SizedBox(height: 100,),
-            Text("内部数値\n食材名＝$foodName\n賞味期限＝$expiryDate",style: const TextStyle(fontSize: 20),),
+            Text("内部数値\n料理名＝$recipeName\nURL＝$recipeURL\n食材＝$ingredientName",style: const TextStyle(fontSize: 20),),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: ()async{
-          await FirebaseFirestore.instance.collection("Date").doc(foodName).set({'date':expiryDate});
-          foodName="";
-          expiryDate=0;
-        },
-        tooltip: '確定',
-        child: const Text("確"),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          FloatingActionButton(
+            onPressed: (){
+              setState(() {
+                ingredientName=[];
+              });
+            },
+            tooltip: '食材リセット',
+            child: const Icon(Icons.refresh_sharp),
+          ),
+          SizedBox(width: MediaQuery.of(context).size.width*0.5,),
+          FloatingActionButton(
+            onPressed: ()async{
+              for(int i=0;i<ingredientName.length;i++){
+                if(await checkIfDocExists(recipeName)){
+                  FirebaseFirestore.instance.collection("Recipe").doc(recipeName).set({ingredientName[i] : recipeURL},SetOptions(merge:true));
+                }else{
+                  FirebaseFirestore.instance.collection("Recipe").doc(recipeName).set({ ingredientName[i] : recipeURL});
+                }
+              }
+              },
+            tooltip: '確定',
+            child: const Text("確"),
+          ),
+        ],
       ),
+
     );
   }
 }

@@ -122,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
               ),
             ),
             const SizedBox(height: 100,),
-            Text("内部数値\n食材名＝$ingredientName\nレシピURL＝$recipeURLs\n料理名＝$recipeNames",style: const TextStyle(fontSize: 20),),
+            Text("内部数値\n食材名＝$ingredientName\n料理名＝$recipeNames\nレシピURL＝$recipeURLs",style: const TextStyle(fontSize: 20),),
           ],
         ),
       ),
